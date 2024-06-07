@@ -33,11 +33,12 @@ const InputField = forwardRef((props, ref) => {
       <TextInput
         style={{fontFamily: appFonts.regular}}
         cursorColor={appColors.primary}
-        className="w-[85%] pl-3 text-black placeholder:text-appGray "
+        className="w-[85%] pl-3 text-black "
         placeholder={placeholder}
         onChangeText={onChangeText}
         value={value}
         onFocus={onFocus}
+        placeholderTextColor={appColors?.appGray}
         ref={ref}
       />
       {!isSearch && (

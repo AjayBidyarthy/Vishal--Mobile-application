@@ -5,14 +5,14 @@ import CustomText from '../CustomText';
 import arrow from '../../assets/images/arr.png';
 import {appColors} from '../../utils/appColors';
 
-const ProgressChart = ({progress, title}) => {
+const ProgressChart = ({progress, title, range}) => {
   return (
     <View className="w-[100%] bg-transparent pb-4  ">
       <CustomText className="my-2 text-center">{title}</CustomText>
       <View className="flex-row items-center justify-between px-2 ">
         <CustomText className="text-[11px]">0</CustomText>
-        <CustomText className="text-[11px]">50</CustomText>
-        <CustomText className="text-[11px]">100</CustomText>
+        <CustomText className="text-[11px]">{range / 2}</CustomText>
+        <CustomText className="text-[11px]">{range}</CustomText>
       </View>
       <LinearGradient
         colors={['#ff0000', '#ffa500', '#ffff00', '#5bfa46', '#008000']}
@@ -29,7 +29,7 @@ const ProgressChart = ({progress, title}) => {
         <Image
           source={arrow}
           tintColor={appColors?.primary}
-          style={{marginLeft: `${progress}%`}}
+          style={{marginLeft: `${progress * 10}%`}}
           className="w-5 h-5 -rotate-90 "
         />
       </View>

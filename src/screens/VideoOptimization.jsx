@@ -196,6 +196,7 @@ const VideoOptimization = () => {
                   <View className="flex-row ">
                     <View className=" w-[60%] pr-3 justify-center ">
                       <ProgressChart
+                        range={10}
                         progress={
                           (searchResult?.description_score +
                             searchResult?.hashtags_score +
