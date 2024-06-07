@@ -4,16 +4,29 @@ import back from '../assets/images/back.png';
 import CustomText from './CustomText';
 import {useNavigation} from '@react-navigation/native';
 import {appColors} from '../utils/appColors';
+import {
+  BannerAd,
+  BannerAdSize,
+  TestIds,
+  useInterstitialAd,
+} from 'react-native-google-mobile-ads';
 
 const TopHeader = ({title}) => {
   const navigation = useNavigation();
+  const {isLoaded, isClosed, load, show} = useInterstitialAd(
+    TestIds.INTERSTITIAL,
+  );
   return (
     <View style={styles.container}>
       <CustomText font="bold" style={{fontSize: 16, color: appColors.appGray}}>
         {title}
       </CustomText>
       <View style={styles.IconConatiner}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          onPress={() => {
+            load();
+            navigation.goBack();
+          }}>
           <Image source={back} style={{width: 27, height: 27}} />
         </TouchableOpacity>
       </View>

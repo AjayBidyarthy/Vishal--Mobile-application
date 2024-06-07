@@ -44,11 +44,11 @@ export const navOption = [
     title: 'Privacy Policy',
     icon: 'information-circle-outline',
   },
-  {
-    id: 5,
-    title: 'Share',
-    icon: 'share-social-outline',
-  },
+  // {
+  //   id: 5,
+  //   title: 'Share',
+  //   icon: 'share-social-outline',
+  // },
 ];
 
 export const ideaTopics = [

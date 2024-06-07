@@ -4,6 +4,7 @@ import {
   Image,
   FlatList,
   ScrollView,
+  ToastAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import back from '../assets/images/back.png';
@@ -16,11 +17,16 @@ import {videoStats} from '../utils/data';
 import view from '../assets/images/view.png';
 import like from '../assets/images/like.png';
 import comment from '../assets/images/comment.png';
-import AdConatiner from '../components/AdConatiner';
 import axios from 'axios';
 import {BASE_URL} from '../utils/BaseUrl';
 import {convertDateFormat, convertToReadableFormat} from '../utils/helper';
 import ProgressChart from '../components/charts/ProgressChart';
+import {
+  TestIds,
+  useRewardedInterstitialAd,
+} from 'react-native-google-mobile-ads';
+import CustomBannerAd from '../components/CustomBannerAd';
+import {Ids} from '../utils/ads-Ids';
 
 const VideoOptimization = () => {
   const navigation = useNavigation();
@@ -30,21 +36,49 @@ const VideoOptimization = () => {
   const [searchResult, setSearchResult] = useState([]);
   const [videoDetails, setVideoDetails] = useState([]);
 
+  const inputBannerAdUnitId = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.inputScreenBannerId;
+  const outputBannerAdUnitId1 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId1;
+  const outputBannerAdUnitId2 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId2;
+
+  const rewardedAdUnitId = true
+    ? TestIds.REWARDED_INTERSTITIAL
+    : Ids?.rewardAdId;
+
+  const {isLoaded, isClosed, load, show} =
+    useRewardedInterstitialAd(rewardedAdUnitId);
+
   const getVideoDetails = async () => {
     setLoader(true);
-    // interstitial?.show();
+    if (isLoaded) {
+      show();
+    }
     await axios
       .post(`${BASE_URL}/Video_Audit_Report`, {url: videoUrl})
       .then(result => {
         //console.log(result?.data);
+        if (!isLoaded) {
+          load();
+        }
         setSearchResult(result?.data?.data);
         setVideoDetails(result?.data?.videoDetails?.data?.items[0]);
         setLoader(false);
       })
       .catch(error => {
-        //setSearchedData(null);
         setLoader(false);
-        console.log(error?.message, 'this is error');
+        if (!isLoaded) {
+          load();
+        }
+        ToastAndroid.show(
+          'Something went wrong try again',
+          ToastAndroid.BOTTOM,
+        );
+        // console.log(error?.message, 'this is error');
       });
   };
 
@@ -52,6 +86,11 @@ const VideoOptimization = () => {
     setVideoUrl('');
     setSearchResult([]);
   };
+
+  useEffect(() => {
+    load();
+  }, [load, isClosed]);
+
   return (
     <View className="flex-1 bg-secondry">
       <View className="flex-row items-center justify-between px-3 py-4 ">
@@ -76,160 +115,171 @@ const VideoOptimization = () => {
         </View>
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{paddingVertical: '4%', paddingHorizontal: '3%'}}>
-          {searchResult?.length !== 0 && (
+        <View style={{paddingVertical: '4%'}}>
+          {searchResult?.length === 0 ? (
+            <CustomBannerAd adId={inputBannerAdUnitId} />
+          ) : (
             <View>
-              <ToolsContainer title="Video Details">
-                <View className="flex-row p-3 bg-white rounded-lg">
-                  {videoDetails?.length !== 0 && (
-                    <Image
-                      source={{
-                        uri:
-                          videoDetails?.snippet?.thumbnails?.default?.url !==
-                            null &&
-                          videoDetails?.snippet?.thumbnails?.default?.url,
-                      }}
-                      className=" w-[40%] h-20 rounded-lg"
-                    />
-                  )}
-                  <View className=" w-[60%] ml-4">
-                    <CustomText
-                      style={{fontSize: 11, color: appColors.appText}}>
-                      {videoDetails?.snippet?.title}
-                    </CustomText>
-                    <CustomText
-                      style={{
-                        fontSize: 8,
-                        color: appColors.appGray,
-                        paddingVertical: 3,
-                      }}>
-                      Published On{' '}
-                      {convertDateFormat(videoDetails?.snippet?.publishedAt)}
-                    </CustomText>
-                    <View>
-                      <FlatList
-                        data={videoStats}
-                        numColumns={nclm}
-                        scrollEnabled={false}
-                        renderItem={({item, index}) => (
-                          <View
-                            key={index}
-                            className={` flex-row  w-[42%] m-1 items-center py-1 justify-between  rounded-md  bg-borderGray/60  px-5 `}>
-                            <Image
-                              source={
-                                index == 0 ? view : index == 1 ? like : comment
-                              }
-                              className={` ${
-                                index == 0 ? 'h-2 w-[16px]' : 'w-3 h-3'
-                              } `}
-                            />
-                            <CustomText
-                              style={{fontSize: 9, color: appColors.appText}}>
-                              {index == 0
-                                ? convertToReadableFormat(
-                                    videoDetails?.statistics?.viewCount,
-                                  )
-                                : index == 1
-                                ? convertToReadableFormat(
-                                    videoDetails?.statistics?.likeCount,
-                                  )
-                                : convertToReadableFormat(
-                                    videoDetails?.statistics?.commentCount,
-                                  )}
-                            </CustomText>
-                          </View>
-                        )}
+              <View className="px-3 ">
+                <ToolsContainer title="Video Details">
+                  <View className="flex-row p-3 bg-white rounded-lg">
+                    {videoDetails?.length !== 0 && (
+                      <Image
+                        source={{
+                          uri:
+                            videoDetails?.snippet?.thumbnails?.default?.url !==
+                              null &&
+                            videoDetails?.snippet?.thumbnails?.default?.url,
+                        }}
+                        className=" w-[40%] h-20 rounded-lg"
+                      />
+                    )}
+                    <View className=" w-[60%] ml-4">
+                      <CustomText
+                        style={{fontSize: 11, color: appColors.appText}}>
+                        {videoDetails?.snippet?.title}
+                      </CustomText>
+                      <CustomText
+                        style={{
+                          fontSize: 8,
+                          color: appColors.appGray,
+                          paddingVertical: 3,
+                        }}>
+                        Published On{' '}
+                        {convertDateFormat(videoDetails?.snippet?.publishedAt)}
+                      </CustomText>
+                      <View>
+                        <FlatList
+                          data={videoStats}
+                          numColumns={nclm}
+                          scrollEnabled={false}
+                          renderItem={({item, index}) => (
+                            <View
+                              key={index}
+                              className={` flex-row  w-[42%] m-1 items-center py-1 justify-between  rounded-md  bg-borderGray/60  px-5 `}>
+                              <Image
+                                source={
+                                  index == 0
+                                    ? view
+                                    : index == 1
+                                    ? like
+                                    : comment
+                                }
+                                className={` ${
+                                  index == 0 ? 'h-2 w-[16px]' : 'w-3 h-3'
+                                } `}
+                              />
+                              <CustomText
+                                style={{fontSize: 9, color: appColors.appText}}>
+                                {index == 0
+                                  ? convertToReadableFormat(
+                                      videoDetails?.statistics?.viewCount,
+                                    )
+                                  : index == 1
+                                  ? convertToReadableFormat(
+                                      videoDetails?.statistics?.likeCount,
+                                    )
+                                  : convertToReadableFormat(
+                                      videoDetails?.statistics?.commentCount,
+                                    )}
+                              </CustomText>
+                            </View>
+                          )}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </ToolsContainer>
+                <ToolsContainer
+                  title="Video Optimization Score"
+                  style={{marginTop: '10%'}}>
+                  <View className="flex-row ">
+                    <View className=" w-[60%] pr-3 justify-center ">
+                      <ProgressChart
+                        progress={
+                          (searchResult?.description_score +
+                            searchResult?.hashtags_score +
+                            searchResult?.title_score +
+                            searchResult?.tags_score) /
+                          4
+                        }
+                        title="Overall Optimization Score"
                       />
                     </View>
-                  </View>
-                </View>
-              </ToolsContainer>
-              <ToolsContainer
-                title="Video Optimization Score"
-                style={{marginTop: '10%'}}>
-                <View className="flex-row ">
-                  <View className=" w-[60%] pr-3 justify-center ">
-                    <ProgressChart
-                      progress={30}
-                      title="Overall Optimization Score"
-                    />
-                  </View>
-                  <View className=" w-[40%]">
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Description Score :
-                      </CustomText>
-                      <CustomText
-                        font="bold"
-                        style={{fontSize: 12, color: appColors.primary}}>
-                        {searchResult?.description_score}
-                      </CustomText>
-                    </View>
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-1 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Hashtags Score :
-                      </CustomText>
-                      <CustomText
-                        font="bold"
-                        style={{fontSize: 12, color: appColors.primary}}>
-                        {searchResult?.hashtags_score}
-                      </CustomText>
-                    </View>
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-1 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Title Score :
-                      </CustomText>
-                      <CustomText
-                        font="bold"
-                        style={{fontSize: 12, color: appColors.primary}}>
-                        {searchResult?.title_score}
-                      </CustomText>
-                    </View>
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-1 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Tags Score :
-                      </CustomText>
-                      <CustomText
-                        font="bold"
-                        style={{fontSize: 12, color: appColors.primary}}>
-                        {searchResult?.tags_score}
-                      </CustomText>
+                    <View className=" w-[40%]">
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Description Score :
+                        </CustomText>
+                        <CustomText
+                          font="bold"
+                          style={{fontSize: 12, color: appColors.primary}}>
+                          {searchResult?.description_score}
+                        </CustomText>
+                      </View>
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-1 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Hashtags Score :
+                        </CustomText>
+                        <CustomText
+                          font="bold"
+                          style={{fontSize: 12, color: appColors.primary}}>
+                          {searchResult?.hashtags_score}
+                        </CustomText>
+                      </View>
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-1 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Title Score :
+                        </CustomText>
+                        <CustomText
+                          font="bold"
+                          style={{fontSize: 12, color: appColors.primary}}>
+                          {searchResult?.title_score}
+                        </CustomText>
+                      </View>
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-1 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Tags Score :
+                        </CustomText>
+                        <CustomText
+                          font="bold"
+                          style={{fontSize: 12, color: appColors.primary}}>
+                          {searchResult?.tags_score}
+                        </CustomText>
+                      </View>
                     </View>
                   </View>
-                </View>
-              </ToolsContainer>
-              <AdConatiner>
-                <CustomText>ads</CustomText>
-              </AdConatiner>
-              <ToolsContainer
-                title="Video Optimization Suggestions"
-                style={{marginTop: '5%'}}>
-                <View className="p-3 bg-white rounded-lg ">
-                  <CustomText>
-                    {searchResult?.suggestions === ''
-                      ? 'No Suggestions'
-                      : searchResult?.suggestions}
-                  </CustomText>
-                </View>
-              </ToolsContainer>
+                </ToolsContainer>
+              </View>
+              <CustomBannerAd adId={outputBannerAdUnitId1} />
+              <View className="px-3 ">
+                <ToolsContainer
+                  title="Video Optimization Suggestions"
+                  style={{marginTop: '5%'}}>
+                  <View className="p-3 bg-white rounded-lg ">
+                    <CustomText>
+                      {searchResult?.suggestions === ''
+                        ? 'No Suggestions'
+                        : searchResult?.suggestions}
+                    </CustomText>
+                  </View>
+                </ToolsContainer>
+              </View>
+              <CustomBannerAd adId={outputBannerAdUnitId2} />
             </View>
           )}
-
-          <AdConatiner>
-            <CustomText>ads</CustomText>
-          </AdConatiner>
         </View>
       </ScrollView>
     </View>

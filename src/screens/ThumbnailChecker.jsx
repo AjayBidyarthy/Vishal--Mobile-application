@@ -4,6 +4,7 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import TopHeader from '../components/TopHeader';
@@ -17,11 +18,16 @@ import close from '../assets/images/close.png';
 import preview from '../assets/images/preview.png';
 import ok from '../assets/images/done2.png';
 import redClose from '../assets/images/redClose.png';
-import AdConatiner from '../components/AdConatiner';
 import {appColors} from '../utils/appColors';
 import axios from 'axios';
 import {BASE_URL} from '../utils/BaseUrl';
 import ProgressChart from '../components/charts/ProgressChart';
+import {
+  TestIds,
+  useRewardedInterstitialAd,
+} from 'react-native-google-mobile-ads';
+import CustomBannerAd from '../components/CustomBannerAd';
+import {Ids} from '../utils/ads-Ids';
 
 const ThumbnailChecker = () => {
   const [imgUrl, setImgUrl] = useState('');
@@ -30,6 +36,22 @@ const ThumbnailChecker = () => {
   const [searchResult, setSearchResult] = useState([]);
   const [loader, setLoader] = useState(false);
   const [brandName, setBrandName] = useState('');
+  const inputBannerAdUnitId = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.inputScreenBannerId;
+  const outputBannerAdUnitId1 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId1;
+  const outputBannerAdUnitId2 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId2;
+
+  const rewardedAdUnitId = true
+    ? TestIds.REWARDED_INTERSTITIAL
+    : Ids?.rewardAdId;
+
+  const {isLoaded, isClosed, load, show} =
+    useRewardedInterstitialAd(rewardedAdUnitId);
 
   const selectThumbanil = async () => {
     setImageLoader(true);
@@ -54,7 +76,7 @@ const ThumbnailChecker = () => {
             },
           })
           .then(result => {
-            console.log(result?.data);
+            // console.log(result?.data);
             setImgUrl(result?.data?.publicUrl);
             // setSearchedData(result?.data);
             setImageLoader(false);
@@ -63,19 +85,25 @@ const ThumbnailChecker = () => {
             //setSearchedData(null);
             //setLoader(false);
             setImageLoader(false);
-            console.log(error?.message, 'this is error');
+            //console.log(error?.message, 'this is error');
           });
         // uploadImageToGCS(path);
       })
       .catch(err => {
         setImageLoader(false);
-        console.log(err, 'error');
+        ToastAndroid.show(
+          'Something went wrong try again',
+          ToastAndroid.BOTTOM,
+        );
+        // console.log(err, 'error');
       });
   };
 
   const checkThumbnailQuality = async () => {
-    // interstitial?.show();
     setLoader(true);
+    if (isLoaded) {
+      show();
+    }
     const requestData = {
       formValues: {
         title: videoTitle,
@@ -89,15 +117,22 @@ const ThumbnailChecker = () => {
     await axios
       .post(`${BASE_URL}/user/get-thumbnail-quality`, requestData)
       .then(result => {
-        console.log(result?.data?.data?.factors);
-        // setSearchedData(result?.data);
+        if (!isLoaded) {
+          load();
+        }
+        //console.log(result?.data?.data?.factors);
+
         setSearchResult(result?.data?.data);
         setLoader(false);
       })
       .catch(error => {
         //setSearchedData(null);
         setLoader(false);
-        console.log(error?.message, 'this is error');
+        ToastAndroid.show(
+          'Something went wrong try again',
+          ToastAndroid.BOTTOM,
+        );
+        //console.log(error?.message, 'this is error');
       });
   };
 
@@ -111,6 +146,10 @@ const ThumbnailChecker = () => {
 
   //console.log(searchResult);
 
+  useEffect(() => {
+    load();
+  }, [load, isClosed]);
+
   return (
     <View className="flex-1 bg-secondry">
       <TopHeader
@@ -118,21 +157,23 @@ const ThumbnailChecker = () => {
         titleStyle={{marginLeft: '12%'}}
       />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View className="px-4 ">
-          <InputField
-            isSearch={true}
-            placeholder="Enter Video Title"
-            value={videoTitle}
-            onChangeText={t => setVideoTitle(t)}
-          />
-          <InputField
-            isSearch={true}
-            placeholder="Enter Brand Name"
-            style={{marginTop: '5%'}}
-            value={brandName}
-            onChangeText={t => setBrandName(t)}
-          />
-          <View className="flex-row items-center my-4 ">
+        <View className="">
+          <View className="px-3 ">
+            <InputField
+              isSearch={true}
+              placeholder="Enter Video Title"
+              value={videoTitle}
+              onChangeText={t => setVideoTitle(t)}
+            />
+            <InputField
+              isSearch={true}
+              placeholder="Enter Brand Name"
+              style={{marginTop: '5%'}}
+              value={brandName}
+              onChangeText={t => setBrandName(t)}
+            />
+          </View>
+          <View className="flex-row items-center px-3 my-4 ">
             <View
               style={{elevation: 3}}
               className="bg-white w-[65%] px-3 py-4 rounded-lg ">
@@ -156,7 +197,7 @@ const ThumbnailChecker = () => {
           </View>
 
           {imgUrl ? (
-            <View className="items-center my-3 ">
+            <View className="items-center px-3 my-3 ">
               <Image
                 source={{uri: imgUrl}}
                 className="w-[80%] h-36 rounded-lg "
@@ -173,7 +214,7 @@ const ThumbnailChecker = () => {
               </View>
             </View>
           ) : (
-            <View className="items-center py-5 my-3 border border-gray-300 rounded-xl ">
+            <View className="items-center py-5 mx-3 my-3 border border-gray-300 rounded-xl ">
               {imageLoader ? (
                 <ActivityIndicator color={appColors?.primary} size={35} />
               ) : (
@@ -213,146 +254,146 @@ const ThumbnailChecker = () => {
               )}
             </TouchableOpacity>
           </View>
-          <AdConatiner>
-            <CustomText>ads</CustomText>
-          </AdConatiner>
 
-          {searchResult?.length !== 0 && (
+          {searchResult?.length === 0 ? (
+            <CustomBannerAd adId={inputBannerAdUnitId} />
+          ) : (
             <>
-              <ToolsContainer
-                title="Thumbnail Quality Score"
-                style={{marginVertical: '10%'}}>
-                <View className="flex-row ">
-                  <View className=" w-[60%] pr-3 justify-center ">
-                    <ProgressChart
-                      progress={searchResult?.score}
-                      title="Overall Quality Meter"
-                    />
-                    <View className="items-center mt-5">
-                      <CustomText
-                        font="semibold"
-                        className="text-xl text-black ">
-                        Feedback
-                      </CustomText>
-                      <CustomText>{searchResult?.feedback}</CustomText>
-                      {/* <Image source={ok} className="w-20 h-20 " /> */}
+              <CustomBannerAd adId={outputBannerAdUnitId1} />
+              <View className="px-4 ">
+                <ToolsContainer
+                  title="Thumbnail Quality Score"
+                  style={{marginVertical: '10%'}}>
+                  <View className="flex-row ">
+                    <View className=" w-[60%] pr-3 justify-center ">
+                      <ProgressChart
+                        progress={searchResult?.score}
+                        title="Overall Quality Meter"
+                      />
+                      <View className="items-center mt-5">
+                        <CustomText
+                          font="semibold"
+                          className="text-xl text-black ">
+                          Feedback
+                        </CustomText>
+                        <CustomText>{searchResult?.feedback}</CustomText>
+                        {/* <Image source={ok} className="w-20 h-20 " /> */}
+                      </View>
+                    </View>
+                    <View className=" w-[40%]">
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Aspect Ratio :
+                        </CustomText>
+                        {searchResult?.factors?.aspect_ratio_core ? (
+                          <Image source={ok} className="w-3 h-3 " />
+                        ) : (
+                          <Image source={redClose} className="w-3 h-3 " />
+                        )}
+                      </View>
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Brand Identity :
+                        </CustomText>
+                        {searchResult?.factors?.brand_identity_score ? (
+                          <Image source={ok} className="w-3 h-3 " />
+                        ) : (
+                          <Image source={redClose} className="w-3 h-3 " />
+                        )}
+                      </View>
+
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Color Palette :
+                        </CustomText>
+                        {searchResult?.factors?.color_palette ? (
+                          <Image source={ok} className="w-3 h-3 " />
+                        ) : (
+                          <Image source={redClose} className="w-3 h-3 " />
+                        )}
+                      </View>
+
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          'Font Size' :
+                        </CustomText>
+                        {searchResult?.factors?.font_size_score ? (
+                          <Image source={ok} className="w-3 h-3 " />
+                        ) : (
+                          <Image source={redClose} className="w-3 h-3 " />
+                        )}
+                      </View>
+
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          'NSFW' :
+                        </CustomText>
+                        {searchResult?.factors?.nsfw_score ? (
+                          <Image source={ok} className="w-3 h-3 " />
+                        ) : (
+                          <Image source={redClose} className="w-3 h-3 " />
+                        )}
+                      </View>
+
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Sentiment :
+                        </CustomText>
+                        {searchResult?.factors?.semtiment_score ? (
+                          <Image source={ok} className="w-3 h-3 " />
+                        ) : (
+                          <Image source={redClose} className="w-3 h-3 " />
+                        )}
+                      </View>
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          Similarity : :
+                        </CustomText>
+                        {searchResult?.factors?.similarity_score ? (
+                          <Image source={ok} className="w-3 h-3 " />
+                        ) : (
+                          <Image source={redClose} className="w-3 h-3 " />
+                        )}
+                      </View>
+                      <View
+                        style={{elevation: 1}}
+                        className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
+                        <CustomText
+                          style={{fontSize: 12, color: appColors.appText}}>
+                          White Space :
+                        </CustomText>
+                        {searchResult?.factors?.white_space_score ? (
+                          <Image source={ok} className="w-3 h-3 " />
+                        ) : (
+                          <Image source={redClose} className="w-3 h-3 " />
+                        )}
+                      </View>
                     </View>
                   </View>
-                  <View className=" w-[40%]">
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Aspect Ratio :
-                      </CustomText>
-                      {searchResult?.factors?.aspect_ratio_core ? (
-                        <Image source={ok} className="w-3 h-3 " />
-                      ) : (
-                        <Image source={redClose} className="w-3 h-3 " />
-                      )}
-                    </View>
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Brand Identity :
-                      </CustomText>
-                      {searchResult?.factors?.brand_identity_score ? (
-                        <Image source={ok} className="w-3 h-3 " />
-                      ) : (
-                        <Image source={redClose} className="w-3 h-3 " />
-                      )}
-                    </View>
-
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Color Palette :
-                      </CustomText>
-                      {searchResult?.factors?.color_palette ? (
-                        <Image source={ok} className="w-3 h-3 " />
-                      ) : (
-                        <Image source={redClose} className="w-3 h-3 " />
-                      )}
-                    </View>
-
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        'Font Size' :
-                      </CustomText>
-                      {searchResult?.factors?.font_size_score ? (
-                        <Image source={ok} className="w-3 h-3 " />
-                      ) : (
-                        <Image source={redClose} className="w-3 h-3 " />
-                      )}
-                    </View>
-
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        'NSFW' :
-                      </CustomText>
-                      {searchResult?.factors?.nsfw_score ? (
-                        <Image source={ok} className="w-3 h-3 " />
-                      ) : (
-                        <Image source={redClose} className="w-3 h-3 " />
-                      )}
-                    </View>
-
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Sentiment :
-                      </CustomText>
-                      {searchResult?.factors?.semtiment_score ? (
-                        <Image source={ok} className="w-3 h-3 " />
-                      ) : (
-                        <Image source={redClose} className="w-3 h-3 " />
-                      )}
-                    </View>
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        Similarity : :
-                      </CustomText>
-                      {searchResult?.factors?.similarity_score ? (
-                        <Image source={ok} className="w-3 h-3 " />
-                      ) : (
-                        <Image source={redClose} className="w-3 h-3 " />
-                      )}
-                    </View>
-                    <View
-                      style={{elevation: 1}}
-                      className="flex-row items-center justify-between p-2 mt-2 bg-white rounded-lg ">
-                      <CustomText
-                        style={{fontSize: 12, color: appColors.appText}}>
-                        White Space :
-                      </CustomText>
-                      {searchResult?.factors?.white_space_score ? (
-                        <Image source={ok} className="w-3 h-3 " />
-                      ) : (
-                        <Image source={redClose} className="w-3 h-3 " />
-                      )}
-                    </View>
-                  </View>
-                </View>
-              </ToolsContainer>
-              <AdConatiner>
-                <CustomText>ads</CustomText>
-              </AdConatiner>
+                </ToolsContainer>
+              </View>
+              <CustomBannerAd adId={outputBannerAdUnitId2} />
             </>
           )}
         </View>

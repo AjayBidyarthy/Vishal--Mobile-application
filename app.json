@@ -1,8 +1,7 @@
 {
   "name": "tube_tools",
-  "displayName": "tube_tools",
+  "displayName": "TubeTools",
   "react-native-google-mobile-ads": {
-    "android_app_id": "ca-app-pub-xxxxxxxx~xxxxxxxx",
-    "ios_app_id": "ca-app-pub-xxxxxxxx~xxxxxxxx"
+    "android_app_id": "ca-app-pub-7208632863169983~9403599063"
   }
 }

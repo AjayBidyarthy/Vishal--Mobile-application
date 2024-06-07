@@ -1,10 +1,9 @@
 import {
-  Image,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
   Keyboard,
+  ToastAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import TopHeader from '../components/TopHeader';
@@ -17,36 +16,68 @@ import axios from 'axios';
 import ProgressChart from '../components/charts/ProgressChart';
 import {BASE_URL} from '../utils/BaseUrl';
 import RelatedKeywordTable from '../components/RelatedKeywordTable';
-import AdConatiner from '../components/AdConatiner';
+import {
+  TestIds,
+  useInterstitialAd,
+  useRewardedInterstitialAd,
+} from 'react-native-google-mobile-ads';
+import CustomBannerAd from '../components/CustomBannerAd';
+import {Ids} from '../utils/ads-Ids';
 
 const KeywordSearch = () => {
   const [keyword, setKeyword] = useState('');
   const [loader, setLoader] = useState(false);
   const [searchResult, setSearchResult] = useState([]);
-  const [relatedKeyword, setRelatedKeyword] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(5);
+  const inputBannerAdUnitId = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.inputScreenBannerId;
+  const outputBannerAdUnitId1 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId1;
+  const outputBannerAdUnitId2 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId2;
 
+  const interstitialsAdUnitId = true
+    ? TestIds.REWARDED_INTERSTITIAL
+    : Ids?.interstitialsAdId;
+
+  const {isLoaded, isClosed, load, show} = useRewardedInterstitialAd(
+    interstitialsAdUnitId,
+  );
   const getKeywordData = async () => {
     Keyboard.dismiss();
-    // interstitial?.show();
+    if (isLoaded) {
+      show();
+    }
     setLoader(true);
-    setCurrentIndex(5);
 
     //console.log(requestData, "red darta");
     await axios
       .get(`${BASE_URL}/get-Related-keywords?keyword=${keyword}`)
       .then(result => {
+        if (!isLoaded) {
+          load();
+        }
         console.log(result?.data);
         setSearchResult(result?.data);
-        setRelatedKeyword(result?.data?.related_keywords?.slice(0, 5));
+
         setLoader(false);
       })
       .catch(error => {
         //setSearchedData(null);
         setLoader(false);
+        ToastAndroid.show(
+          'Something went wrong try again',
+          ToastAndroid.BOTTOM,
+        );
         console.log(error?.message, 'this is error');
       });
   };
+
+  useEffect(() => {
+    load();
+  }, [load, isClosed]);
 
   return (
     <View style={styles.screen}>
@@ -66,66 +97,72 @@ const KeywordSearch = () => {
         />
       </View>
       <ScrollView>
-        <View className="px-4 py-10 ">
-          <AdConatiner>
-            <CustomText>ads</CustomText>
-          </AdConatiner>
-          {searchResult?.length !== 0 && (
-            <>
-              <ToolsContainer title="Keyword Score" style={{marginTop: '5%'}}>
-                <View className="px-2 bg-white rounded-lg ">
-                  <ProgressChart
-                    progress={searchResult?.exact_keyword[0].overallscore}
-                    title="Your Score"
-                  />
-                  <ProgressChart
-                    progress={searchResult?.exact_keyword[0].competition_score}
-                    title="Competitor Score"
-                  />
-                </View>
-              </ToolsContainer>
+        <View className="py-10 ">
+          {searchResult?.length === 0 ? (
+            <CustomBannerAd adId={inputBannerAdUnitId} />
+          ) : (
+            <View className="">
+              <CustomBannerAd adId={outputBannerAdUnitId1} />
+              <View className="px-4 ">
+                <ToolsContainer title="Keyword Score" style={{marginTop: '5%'}}>
+                  <View className="px-2 bg-white rounded-lg ">
+                    <ProgressChart
+                      progress={searchResult?.exact_keyword[0].overallscore}
+                      title="Your Score"
+                    />
+                    <ProgressChart
+                      progress={
+                        searchResult?.exact_keyword[0].competition_score
+                      }
+                      title="Competitor Score"
+                    />
+                  </View>
+                </ToolsContainer>
+              </View>
 
-              <ToolsContainer
-                title="Related Keyword"
-                style={{marginTop: '10%'}}>
-                <View
-                  style={{
-                    backgroundColor: appColors.appWhite,
-                    borderRadius: 10,
-                    overflow: 'hidden',
-                  }}>
+              <View className="px-4 ">
+                <ToolsContainer
+                  title="Related Keyword"
+                  style={{marginTop: '10%'}}>
                   <View
                     style={{
-                      backgroundColor: '#606060',
-                      flexDirection: 'row',
-                      paddingVertical: '2%',
+                      backgroundColor: appColors.appWhite,
+                      borderRadius: 10,
+                      overflow: 'hidden',
                     }}>
-                    {tableHeader?.map((item, index) => (
-                      <View
-                        key={index}
-                        style={{
-                          width: index === 0 ? '36%' : '16%',
-                          paddingLeft: index === 0 && 10,
-                          paddingRight: index === 4 && 2,
-                        }}>
-                        <CustomText
+                    <View
+                      style={{
+                        backgroundColor: '#606060',
+                        flexDirection: 'row',
+                        paddingVertical: '2%',
+                      }}>
+                      {tableHeader?.map((item, index) => (
+                        <View
+                          key={index}
                           style={{
-                            fontSize: 9,
-                            color: appColors.appWhite,
-                            textAlign: index !== 0 ? 'center' : 'start',
+                            width: index === 0 ? '36%' : '16%',
+                            paddingLeft: index === 0 && 10,
+                            paddingRight: index === 4 && 2,
                           }}>
-                          {item}
-                        </CustomText>
-                      </View>
-                    ))}
+                          <CustomText
+                            style={{
+                              fontSize: 9,
+                              color: appColors.appWhite,
+                              textAlign: index !== 0 ? 'center' : 'start',
+                            }}>
+                            {item}
+                          </CustomText>
+                        </View>
+                      ))}
+                    </View>
+                    <RelatedKeywordTable
+                      data={searchResult?.related_keywords}
+                    />
                   </View>
-                  <RelatedKeywordTable data={searchResult?.related_keywords} />
-                </View>
-              </ToolsContainer>
-              <AdConatiner>
-                <CustomText>ads</CustomText>
-              </AdConatiner>
-            </>
+                </ToolsContainer>
+              </View>
+              <CustomBannerAd adId={outputBannerAdUnitId2} />
+            </View>
           )}
         </View>
       </ScrollView>

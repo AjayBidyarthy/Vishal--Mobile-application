@@ -1,4 +1,11 @@
-import {View, FlatList, ScrollView, StyleSheet, Keyboard} from 'react-native';
+import {
+  View,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Keyboard,
+  ToastAndroid,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import TopHeader from '../components/TopHeader';
 import InputField from '../components/InputField';
@@ -7,34 +14,68 @@ import ToolsContainer from '../components/ToolsContainer';
 import {appColors} from '../utils/appColors';
 import {BASE_URL} from '../utils/BaseUrl';
 import axios from 'axios';
-import AdConatiner from '../components/AdConatiner';
+import {
+  TestIds,
+  useRewardedInterstitialAd,
+} from 'react-native-google-mobile-ads';
+import {Ids} from '../utils/ads-Ids';
+import CustomBannerAd from '../components/CustomBannerAd';
 
 const TopicIdeas = () => {
   const [videoLink, setVideoLink] = useState('');
   const [loader, setLoader] = useState(false);
   const [searchResult, setSearchResult] = useState([]);
+  const inputBannerAdUnitId = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.inputScreenBannerId;
+  const outputBannerAdUnitId1 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId1;
+  const outputBannerAdUnitId2 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId2;
+  const rewardedAdUnitId = true
+    ? TestIds.REWARDED_INTERSTITIAL
+    : Ids?.rewardAdId;
+
+  const {isLoaded, isClosed, load, show} =
+    useRewardedInterstitialAd(rewardedAdUnitId);
 
   const getTopicIdeaData = async () => {
     Keyboard.dismiss();
-
+    if (isLoaded) {
+      show();
+    }
     setLoader(true);
     const requestData = {
       url: videoLink,
     };
-    //console.log(requestData, "red darta");
+
     await axios
       .post(`${BASE_URL}/recommended-keywords`, requestData)
       .then(result => {
-        console.log(result?.data);
+        if (!isLoaded) {
+          load();
+        }
+        // console.log(result?.data);
         setSearchResult(result?.data?.response?.recommendations);
         setLoader(false);
       })
       .catch(error => {
         //setSearchedData(null);
         setLoader(false);
-        console.log(error?.message, 'this is error');
+        ToastAndroid.show(
+          'Something went wrong try again',
+          ToastAndroid.BOTTOM,
+        );
+        // console.log(error?.message, 'this is error');
       });
   };
+
+  useEffect(() => {
+    load();
+  }, [load, isClosed]);
+
   return (
     <View style={styles.screen}>
       <TopHeader title="Topic Ideas" />
@@ -55,13 +96,11 @@ const TopicIdeas = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View>
-          <View className="py-3 ">
-            <AdConatiner>
-              <CustomText>ads</CustomText>
-            </AdConatiner>
-          </View>
-          {searchResult?.length !== 0 && (
+          {searchResult?.length === 0 ? (
+            <CustomBannerAd adId={inputBannerAdUnitId} />
+          ) : (
             <>
+              <CustomBannerAd adId={outputBannerAdUnitId1} />
               <View className="p-4 ">
                 <ToolsContainer title="Generated Ideas">
                   <View
@@ -90,11 +129,7 @@ const TopicIdeas = () => {
                   </View>
                 </ToolsContainer>
               </View>
-              <View className="py-3 ">
-                <AdConatiner>
-                  <CustomText>ads</CustomText>
-                </AdConatiner>
-              </View>
+              <CustomBannerAd adId={outputBannerAdUnitId2} />
             </>
           )}
         </View>

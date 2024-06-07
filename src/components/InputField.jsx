@@ -24,18 +24,20 @@ const InputField = forwardRef((props, ref) => {
     onClose,
     onChangeText,
     loader,
+    onFocus,
     value,
   } = props;
-  const navigation = useNavigation();
+
   return (
     <View style={[{...styles.conatiner, ...style}]}>
       <TextInput
         style={{fontFamily: appFonts.regular}}
         cursorColor={appColors.primary}
-        className="w-[85%] pl-3 text-black "
+        className="w-[85%] pl-3 text-black placeholder:text-appGray "
         placeholder={placeholder}
         onChangeText={onChangeText}
         value={value}
+        onFocus={onFocus}
         ref={ref}
       />
       {!isSearch && (

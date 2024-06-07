@@ -1,5 +1,6 @@
 import {appColors} from './appColors';
 import {Cloudinary} from '@cloudinary/url-gen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export function getFilename(url) {
   const parts = url.split('/');
@@ -154,3 +155,16 @@ export function convertDateFormat(isoDateString) {
 export function convertArrayToString(array) {
   return array.join(', ');
 }
+
+export const getRoutes = async key => {
+  const value = await AsyncStorage.getItem(key);
+  return value;
+};
+export const saveRoute = async (key, val) => {
+  try {
+    await AsyncStorage.setItem(key, val);
+  } catch (e) {
+    // saving error
+    console.log('something went wrong!!');
+  }
+};

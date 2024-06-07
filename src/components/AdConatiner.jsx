@@ -4,8 +4,7 @@ import CustomText from './CustomText';
 
 const AdConatiner = ({children}) => {
   return (
-    <View className="items-center px-3 my-8 justify-center bg-appGray/70 h-40 mx-2 ">
-      <CustomText>Banner ads show here</CustomText>
+    <View className="items-center justify-center h-40 px-3 mx-2 my-8 bg-appGray/70 ">
       {children}
     </View>
   );

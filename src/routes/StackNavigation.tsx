@@ -14,6 +14,8 @@ import TagGenerator from '../screens/TagGenerator';
 import HasTagGenerator from '../screens/HasTagGenerator';
 import ThumbnailChecker from '../screens/ThumbnailChecker';
 import ThumbnailGuid from '../screens/ThumbnailGuid';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
+import AboutUsScreen from '../screens/AboutUs';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,7 +39,8 @@ const StackNavigation = () => {
         <Stack.Screen name="hasTag" component={HasTagGenerator} />
         <Stack.Screen name="thumbnail_quality" component={ThumbnailChecker} />
         <Stack.Screen name="thumbnail_guid" component={ThumbnailGuid} />
-
+        <Stack.Screen name="privacy" component={PrivacyPolicyScreen} />
+        <Stack.Screen name="about" component={AboutUsScreen} />
         <Stack.Screen name="description" component={DescriptionGenerator} />
       </Stack.Navigator>
     </NavigationContainer>

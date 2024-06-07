@@ -1,5 +1,5 @@
-import {View, ScrollView} from 'react-native';
-import React, {useRef, useState} from 'react';
+import {View, ScrollView, Keyboard, ToastAndroid} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
 import TopHeader from '../components/TopHeader';
 import InputField from '../components/InputField';
 import CustomText from '../components/CustomText';
@@ -10,6 +10,12 @@ import Dropdown from '../components/Selector';
 import {BASE_URL} from '../utils/BaseUrl';
 import AdConatiner from '../components/AdConatiner';
 import axios from 'axios';
+import {
+  TestIds,
+  useRewardedInterstitialAd,
+} from 'react-native-google-mobile-ads';
+import CustomBannerAd from '../components/CustomBannerAd';
+import {Ids} from '../utils/ads-Ids';
 
 const DescriptionGenerator = () => {
   const [selectedGenre, setSelectedGenre] = useState('Choose Video Genre');
@@ -21,7 +27,27 @@ const DescriptionGenerator = () => {
   const [videoGenerError, setVideoGenerError] = useState(false);
   const [videoLanguageError, setVideoLanguageError] = useState(false);
 
+  const inputBannerAdUnitId = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.inputScreenBannerId;
+  const outputBannerAdUnitId1 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId1;
+  const outputBannerAdUnitId2 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId2;
+  const interstitialAdUnitId = true
+    ? TestIds.REWARDED_INTERSTITIAL
+    : Ids?.interstitialsAdId;
+
+  const {isLoaded, isClosed, load, show} =
+    useRewardedInterstitialAd(interstitialAdUnitId);
+
   const generateVideoDescription = async () => {
+    Keyboard.dismiss();
+    if (isLoaded) {
+      show();
+    }
     if (selectedGenre === 'Choose Video Genre') {
       return setVideoGenerError(true);
     }
@@ -29,6 +55,7 @@ const DescriptionGenerator = () => {
       return setVideoLanguageError(true);
     }
     setLoader(true);
+
     const requestData = {
       data: {
         title: videoTitle,
@@ -41,15 +68,21 @@ const DescriptionGenerator = () => {
     await axios
       .post(`${BASE_URL}/ai/generate_descriptions`, requestData)
       .then(result => {
-        console.log(result?.data);
+        //console.log(result?.data);
+        if (!isLoaded) {
+          load();
+        }
         // setSearchedData(result?.data);
         setSearchResult(result?.data?.data?.description);
         setLoader(false);
       })
       .catch(error => {
-        //setSearchedData(null);
         setLoader(false);
-        console.log(error?.message, 'this is error');
+        ToastAndroid.show(
+          'Something went wrong try again',
+          ToastAndroid.BOTTOM,
+        );
+        //console.log(error?.message, 'this is error');
       });
   };
 
@@ -60,6 +93,10 @@ const DescriptionGenerator = () => {
     setSelectedLanguage('Choose Language');
     inputRef?.current?.focus();
   };
+
+  useEffect(() => {
+    load();
+  }, [load, isClosed]);
 
   return (
     <View className="flex-1 bg-secondry">
@@ -72,6 +109,7 @@ const DescriptionGenerator = () => {
             generateVideoDescription();
           }}
           onClose={onReset}
+          onFocus={() => setSearchResult([])}
           isComplete={searchResult.length === 0 ? false : true}
           onChangeText={t => setVideoTitle(t)}
           loader={loader}
@@ -85,6 +123,7 @@ const DescriptionGenerator = () => {
               data={VIDEO_CATEGORY_LIST}
               onSelect={() => {
                 setVideoGenerError(false);
+                setSearchResult([]);
               }}
               error={videoGenerError}
             />
@@ -96,6 +135,7 @@ const DescriptionGenerator = () => {
               data={ALL_LANGUAGES_LIST}
               onSelect={() => {
                 setVideoLanguageError(false);
+                setSearchResult([]);
               }}
               error={videoLanguageError}
             />
@@ -103,28 +143,28 @@ const DescriptionGenerator = () => {
         </View>
       </View>
       <ScrollView>
-        <View className="px-4 ">
-          <AdConatiner>
-            <CustomText>ads</CustomText>
-          </AdConatiner>
-          {searchResult?.length !== 0 && (
+        <View className="">
+          {searchResult?.length === 0 ? (
+            <CustomBannerAd adId={inputBannerAdUnitId} />
+          ) : (
             <View className="pt-10 ">
-              <ToolsContainer title="Generated Description" className="mt-10">
-                <View className="px-4 py-2 overflow-hidden bg-white rounded-lg ">
-                  <CustomText
-                    font="medium"
-                    style={{lineHeight: 30}}
-                    className="text-justify line-clamp-5">
-                    {searchResult[0]}
-                  </CustomText>
-                </View>
-              </ToolsContainer>
+              <CustomBannerAd adId={outputBannerAdUnitId1} />
+              <View className="px-4 ">
+                <ToolsContainer title="Generated Description" className="mt-10">
+                  <View className="px-4 py-2 overflow-hidden bg-white rounded-lg ">
+                    <CustomText
+                      font="medium"
+                      style={{lineHeight: 30}}
+                      className="text-justify line-clamp-5">
+                      {searchResult[0]}
+                    </CustomText>
+                  </View>
+                </ToolsContainer>
+              </View>
               <View className="flex-row justify-center my-4">
                 <CopyButton text={searchResult[0]} />
               </View>
-              <AdConatiner>
-                <CustomText>ads</CustomText>
-              </AdConatiner>
+              <CustomBannerAd adId={outputBannerAdUnitId2} />
             </View>
           )}
         </View>

@@ -1,5 +1,5 @@
-import {View, ScrollView, FlatList} from 'react-native';
-import React, {useRef, useState} from 'react';
+import {View, ScrollView, FlatList, ToastAndroid, Keyboard} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
 import TopHeader from '../components/TopHeader';
 import InputField from '../components/InputField';
 import CustomText from '../components/CustomText';
@@ -11,6 +11,13 @@ import axios from 'axios';
 import AdConatiner from '../components/AdConatiner';
 import {BASE_URL} from '../utils/BaseUrl';
 import {convertArrayToString} from '../utils/helper';
+import {
+  TestIds,
+  useInterstitialAd,
+  useRewardedInterstitialAd,
+} from 'react-native-google-mobile-ads';
+import CustomBannerAd from '../components/CustomBannerAd';
+import {Ids} from '../utils/ads-Ids';
 
 const TagGenerator = () => {
   const [nclm, setNclm] = useState(3);
@@ -20,8 +27,37 @@ const TagGenerator = () => {
   const [searchResult, setSearchResult] = useState([]);
   const inputRef = useRef();
   const [loader, setLoader] = useState(false);
+  const [videoGenerError, setVideoGenerError] = useState(false);
+  const [videoLanguageError, setVideoLanguageError] = useState(false);
+
+  const inputBannerAdUnitId = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.inputScreenBannerId;
+  const outputBannerAdUnitId1 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId1;
+  const outputBannerAdUnitId2 = true
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.outputBannerId2;
+  const interstitialAdUnitId = true
+    ? TestIds.REWARDED_INTERSTITIAL
+    : Ids?.interstitialsAdId;
+
+  const {isLoaded, isClosed, load, show} =
+    useRewardedInterstitialAd(interstitialAdUnitId);
 
   const generateVideoTags = async () => {
+    Keyboard.dismiss();
+
+    if (isLoaded) {
+      show();
+    }
+    if (selectedGenre === 'Choose Video Genre') {
+      return setVideoGenerError(true);
+    }
+    if (selectedLanguage === 'Choose Language') {
+      return setVideoLanguageError(true);
+    }
     setLoader(true);
     const requestData = {
       data: {
@@ -34,15 +70,22 @@ const TagGenerator = () => {
     await axios
       .post(`${BASE_URL}/ai/generate_youtube_tags`, requestData)
       .then(result => {
-        console.log(result?.data);
-        // setSearchedData(result?.data);
+        // console.log(result?.data);
+        if (!isLoaded) {
+          load();
+        }
+
         setSearchResult(result?.data?.data?.tags);
         setLoader(false);
       })
       .catch(error => {
         //setSearchedData(null);
         setLoader(false);
-        console.log(error?.message, 'this is error');
+        ToastAndroid.show(
+          'Something went wrong try again',
+          ToastAndroid.BOTTOM,
+        );
+        //console.log(error?.message, 'this is error');
       });
   };
 
@@ -53,6 +96,10 @@ const TagGenerator = () => {
     setSelectedLanguage('Choose Language');
     inputRef?.current?.focus();
   };
+
+  useEffect(() => {
+    load();
+  }, [load, isClosed]);
 
   return (
     <View className="flex-1 bg-secondry">
@@ -65,6 +112,7 @@ const TagGenerator = () => {
             generateVideoTags();
           }}
           onClose={onReset}
+          onFocus={() => setSearchResult([])}
           isComplete={searchResult.length === 0 ? false : true}
           onChangeText={t => setVideoTitle(t)}
           loader={loader}
@@ -77,8 +125,10 @@ const TagGenerator = () => {
               setSelectedItem={setSelectedGenre}
               data={VIDEO_CATEGORY_LIST}
               onSelect={() => {
+                setVideoGenerError(false);
                 setSearchResult([]);
               }}
+              error={videoGenerError}
             />
           </View>
           <View className=" w-[48%] mr-2 ">
@@ -87,44 +137,45 @@ const TagGenerator = () => {
               setSelectedItem={setSelectedLanguage}
               data={ALL_LANGUAGES_LIST}
               onSelect={() => {
+                setVideoLanguageError(false);
                 setSearchResult([]);
               }}
+              error={videoLanguageError}
             />
           </View>
         </View>
       </View>
       <ScrollView>
-        <View className="px-4 ">
-          <AdConatiner>
-            <CustomText>ads</CustomText>
-          </AdConatiner>
-          {searchResult?.length !== 0 && (
+        <View className="">
+          {searchResult?.length === 0 ? (
+            <CustomBannerAd adId={inputBannerAdUnitId} />
+          ) : (
             <View className="pt-10 ">
-              <ToolsContainer title="Generated Tags" className="mt-10">
-                <View className="p-3 bg-white rounded-xl ">
-                  <FlatList
-                    data={searchResult}
-                    numColumns={nclm}
-                    scrollEnabled={false}
-                    renderItem={({item, index}) => (
-                      <View
-                        key={index}
-                        style={{elevation: 2}}
-                        className=" bg-secondry w-[29%] m-2 items-center py-2 rounded-lg">
-                        <CustomText className="text-center capitalize text-appText">
-                          {item}
-                        </CustomText>
-                      </View>
-                    )}
-                  />
-                </View>
-              </ToolsContainer>
+              <CustomBannerAd adId={outputBannerAdUnitId1} />
+              <View className="px-4 ">
+                <ToolsContainer title="Generated Tags" className="mt-10">
+                  <View className="p-3 bg-white rounded-xl ">
+                    <FlatList
+                      data={searchResult}
+                      scrollEnabled={false}
+                      renderItem={({item, index}) => (
+                        <View
+                          key={index}
+                          style={{elevation: 2}}
+                          className="items-center px-2 py-2 m-2 rounded-lg bg-secondry">
+                          <CustomText className="text-center capitalize text-appText">
+                            {item}
+                          </CustomText>
+                        </View>
+                      )}
+                    />
+                  </View>
+                </ToolsContainer>
+              </View>
               <View className="flex-row justify-center my-4">
                 <CopyButton text={convertArrayToString(searchResult)} />
               </View>
-              <AdConatiner>
-                <CustomText>ads</CustomText>
-              </AdConatiner>
+              <CustomBannerAd adId={outputBannerAdUnitId2} />
             </View>
           )}
         </View>
