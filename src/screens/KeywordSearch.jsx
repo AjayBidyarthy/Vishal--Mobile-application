@@ -28,17 +28,17 @@ const KeywordSearch = () => {
   const [keyword, setKeyword] = useState('');
   const [loader, setLoader] = useState(false);
   const [searchResult, setSearchResult] = useState([]);
-  const inputBannerAdUnitId = true
+  const inputBannerAdUnitId = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.inputScreenBannerId;
-  const outputBannerAdUnitId1 = true
+  const outputBannerAdUnitId1 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId1;
-  const outputBannerAdUnitId2 = true
+  const outputBannerAdUnitId2 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId2;
 
-  const interstitialsAdUnitId = true
+  const interstitialsAdUnitId = __DEV__
     ? TestIds.REWARDED_INTERSTITIAL
     : Ids?.interstitialsAdId;
 
@@ -51,7 +51,6 @@ const KeywordSearch = () => {
       show();
     }
     setLoader(true);
-
     //console.log(requestData, "red darta");
     await axios
       .get(`${BASE_URL}/get-Related-keywords?keyword=${keyword}`)
@@ -59,7 +58,7 @@ const KeywordSearch = () => {
         if (!isLoaded) {
           load();
         }
-        console.log(result?.data);
+        // console.log(result?.data);
         setSearchResult(result?.data);
 
         setLoader(false);
@@ -71,7 +70,7 @@ const KeywordSearch = () => {
           'Something went wrong try again',
           ToastAndroid.BOTTOM,
         );
-        console.log(error?.message, 'this is error');
+        //console.log(error?.message, 'this is error');
       });
   };
 
@@ -107,12 +106,14 @@ const KeywordSearch = () => {
                 <ToolsContainer title="Keyword Score" style={{marginTop: '5%'}}>
                   <View className="px-2 bg-white rounded-lg ">
                     <ProgressChart
-                      progress={searchResult?.exact_keyword[0].overallscore}
-                      title="Your Score"
+                      range={100}
+                      progress={searchResult?.exact_keyword[0]?.overallscore}
+                      title="Overall Score"
                     />
                     <ProgressChart
+                      range={100}
                       progress={
-                        searchResult?.exact_keyword[0].competition_score
+                        searchResult?.exact_keyword[0]?.competition_score
                       }
                       title="Competitor Score"
                     />

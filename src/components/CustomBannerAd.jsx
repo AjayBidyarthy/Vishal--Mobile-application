@@ -4,7 +4,7 @@ import {BannerAd, BannerAdSize} from 'react-native-google-mobile-ads';
 
 const CustomBannerAd = ({adId}) => {
   return (
-    <View className="py-10 ">
+    <View className="py-10">
       <BannerAd
         unitId={adId}
         size={BannerAdSize.INLINE_ADAPTIVE_BANNER}

@@ -25,16 +25,16 @@ const TopicIdeas = () => {
   const [videoLink, setVideoLink] = useState('');
   const [loader, setLoader] = useState(false);
   const [searchResult, setSearchResult] = useState([]);
-  const inputBannerAdUnitId = true
+  const inputBannerAdUnitId = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.inputScreenBannerId;
-  const outputBannerAdUnitId1 = true
+  const outputBannerAdUnitId1 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId1;
-  const outputBannerAdUnitId2 = true
+  const outputBannerAdUnitId2 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId2;
-  const rewardedAdUnitId = true
+  const rewardedAdUnitId = __DEV__
     ? TestIds.REWARDED_INTERSTITIAL
     : Ids?.rewardAdId;
 

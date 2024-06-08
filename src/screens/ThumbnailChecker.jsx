@@ -36,17 +36,17 @@ const ThumbnailChecker = () => {
   const [searchResult, setSearchResult] = useState([]);
   const [loader, setLoader] = useState(false);
   const [brandName, setBrandName] = useState('');
-  const inputBannerAdUnitId = true
+  const inputBannerAdUnitId = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.inputScreenBannerId;
-  const outputBannerAdUnitId1 = true
+  const outputBannerAdUnitId1 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId1;
-  const outputBannerAdUnitId2 = true
+  const outputBannerAdUnitId2 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId2;
 
-  const rewardedAdUnitId = true
+  const rewardedAdUnitId = __DEV__
     ? TestIds.REWARDED_INTERSTITIAL
     : Ids?.rewardAdId;
 
@@ -106,13 +106,14 @@ const ThumbnailChecker = () => {
     }
     const requestData = {
       formValues: {
-        title: videoTitle,
-        thumbnail_path: imgUrl,
-        brand_name: brandName,
-        brand_logo_path: '',
-        user_profile_path: '',
+        videoTitle: videoTitle,
+        thumbnail: imgUrl,
+        brandName: brandName,
+        brandLogo: '',
+        userProfile: '',
       },
     };
+
     //console.log(requestData, "red darta");
     await axios
       .post(`${BASE_URL}/user/get-thumbnail-quality`, requestData)
@@ -120,8 +121,7 @@ const ThumbnailChecker = () => {
         if (!isLoaded) {
           load();
         }
-        //console.log(result?.data?.data?.factors);
-
+        //console.log(result?.data);
         setSearchResult(result?.data?.data);
         setLoader(false);
       })
@@ -267,6 +267,7 @@ const ThumbnailChecker = () => {
                   <View className="flex-row ">
                     <View className=" w-[60%] pr-3 justify-center ">
                       <ProgressChart
+                        range={100}
                         progress={searchResult?.score}
                         title="Overall Quality Meter"
                       />

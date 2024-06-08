@@ -25,16 +25,16 @@ const ContentResearch = () => {
   const [searchedData, setSearchedData] = useState(null);
   const [loader, setLoader] = useState(false);
   const inputRef = useRef();
-  const inputBannerAdUnitId = true
+  const inputBannerAdUnitId = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.inputScreenBannerId;
-  const outputBannerAdUnitId1 = true
+  const outputBannerAdUnitId1 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId1;
-  const outputBannerAdUnitId2 = true
+  const outputBannerAdUnitId2 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId2;
-  const interstitialAdUnitId = true
+  const interstitialAdUnitId = __DEV__
     ? TestIds.REWARDED_INTERSTITIAL
     : Ids?.interstitialsAdId;
 

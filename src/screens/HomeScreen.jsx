@@ -30,11 +30,15 @@ const HomeScreen = () => {
   const [nclm, setNclm] = useState(3);
   const navigation = useNavigation();
 
-  const BannerAdUnitId1 = true ? TestIds.ADAPTIVE_BANNER : Ids?.homeBannerId1;
+  const BannerAdUnitId1 = __DEV__
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.homeBannerId1;
 
-  const BannerAdUnitId2 = true ? TestIds.ADAPTIVE_BANNER : Ids?.homeBannerId2;
+  const BannerAdUnitId2 = __DEV__
+    ? TestIds.ADAPTIVE_BANNER
+    : Ids?.homeBannerId2;
 
-  const InterstitialsAdUnitId = true
+  const InterstitialsAdUnitId = __DEV__
     ? TestIds.INTERSTITIAL
     : Ids?.interstitialsAdId;
 

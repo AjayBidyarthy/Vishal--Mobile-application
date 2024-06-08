@@ -27,16 +27,16 @@ const DescriptionGenerator = () => {
   const [videoGenerError, setVideoGenerError] = useState(false);
   const [videoLanguageError, setVideoLanguageError] = useState(false);
 
-  const inputBannerAdUnitId = true
+  const inputBannerAdUnitId = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.inputScreenBannerId;
-  const outputBannerAdUnitId1 = true
+  const outputBannerAdUnitId1 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId1;
-  const outputBannerAdUnitId2 = true
+  const outputBannerAdUnitId2 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId2;
-  const interstitialAdUnitId = true
+  const interstitialAdUnitId = __DEV__
     ? TestIds.REWARDED_INTERSTITIAL
     : Ids?.interstitialsAdId;
 

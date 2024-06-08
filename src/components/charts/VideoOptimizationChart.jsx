@@ -1,18 +1,19 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import CustomText from '../CustomText';
 import arrow from '../../assets/images/arr.png';
 import {appColors} from '../../utils/appColors';
 
-const ProgressChart = ({progress, title, range}) => {
+const VideoOptimizationChart = ({progress, title}) => {
+  const [markPlace, setMarkPlace] = useState(progress * 10);
   return (
     <View className="w-[100%] bg-transparent pb-4  ">
       <CustomText className="my-2 text-center">{title}</CustomText>
       <View className="flex-row items-center justify-between px-2 ">
         <CustomText className="text-[11px]">0</CustomText>
-        <CustomText className="text-[11px]">{range / 2}</CustomText>
-        <CustomText className="text-[11px]">{range}</CustomText>
+        <CustomText className="text-[11px] ml-4">5</CustomText>
+        <CustomText className="text-[11px]">10</CustomText>
       </View>
       <LinearGradient
         colors={['#ff0000', '#ffa500', '#ffff00', '#5bfa46', '#008000']}
@@ -29,7 +30,7 @@ const ProgressChart = ({progress, title, range}) => {
         <Image
           source={arrow}
           tintColor={appColors?.primary}
-          style={{marginLeft: `${progress}%`}}
+          style={{marginLeft: `${markPlace}%`}}
           className="w-5 h-5 -rotate-90 "
         />
       </View>
@@ -64,4 +65,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProgressChart;
+export default VideoOptimizationChart;

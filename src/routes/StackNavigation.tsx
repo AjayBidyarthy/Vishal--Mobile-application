@@ -1,7 +1,6 @@
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import SplashScreen from '../screens/SplashScreen';
 import DrawerNavigation from './DrawerNavigation';
 import TopicIdeas from '../screens/TopicIdeas';
 import KeywordSearch from '../screens/KeywordSearch';
@@ -26,8 +25,7 @@ const StackNavigation = () => {
         screenOptions={{
           headerShown: false,
         }}
-        initialRouteName="splash">
-        <Stack.Screen name="splash" component={SplashScreen} />
+        initialRouteName="drawer">
         <Stack.Screen name="drawer" component={DrawerNavigation} />
         <Stack.Screen name="topic_idea" component={TopicIdeas} />
         <Stack.Screen name="keyword_research" component={KeywordSearch} />

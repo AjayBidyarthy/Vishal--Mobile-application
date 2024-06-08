@@ -27,6 +27,7 @@ import {
 } from 'react-native-google-mobile-ads';
 import CustomBannerAd from '../components/CustomBannerAd';
 import {Ids} from '../utils/ads-Ids';
+import VideoOptimizationChart from '../components/charts/VideoOptimizationChart';
 
 const VideoOptimization = () => {
   const navigation = useNavigation();
@@ -36,17 +37,17 @@ const VideoOptimization = () => {
   const [searchResult, setSearchResult] = useState([]);
   const [videoDetails, setVideoDetails] = useState([]);
 
-  const inputBannerAdUnitId = true
+  const inputBannerAdUnitId = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.inputScreenBannerId;
-  const outputBannerAdUnitId1 = true
+  const outputBannerAdUnitId1 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId1;
-  const outputBannerAdUnitId2 = true
+  const outputBannerAdUnitId2 = __DEV__
     ? TestIds.ADAPTIVE_BANNER
     : Ids?.outputBannerId2;
 
-  const rewardedAdUnitId = true
+  const rewardedAdUnitId = __DEV__
     ? TestIds.REWARDED_INTERSTITIAL
     : Ids?.rewardAdId;
 
@@ -195,8 +196,7 @@ const VideoOptimization = () => {
                   style={{marginTop: '10%'}}>
                   <View className="flex-row ">
                     <View className=" w-[60%] pr-3 justify-center ">
-                      <ProgressChart
-                        range={10}
+                      <VideoOptimizationChart
                         progress={
                           (searchResult?.description_score +
                             searchResult?.hashtags_score +
